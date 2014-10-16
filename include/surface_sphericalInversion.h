@@ -3,6 +3,8 @@
 
 #include "plugin_processing.h"
 
+#include "camera.h"
+
 #include "dialog_surface_sphericalInversion.h"
 
 namespace CGoGN
