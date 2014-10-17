@@ -14,20 +14,20 @@ class MapHandlerGen;
 
 class Dialog_Surface_SphericalInversion : public QDialog, public Ui::Dialog_Surface_SphericalInversion
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     Dialog_Surface_SphericalInversion(SCHNApps* s);
 
 private:
-	SCHNApps* m_schnapps;
-	MapHandlerGen* m_selectedMap;
+    SCHNApps* m_schnapps;
+    MapHandlerGen* m_selectedMap;
 
 public slots:
-	void selectedMapChanged();
-	void addMapToList(MapHandlerGen* map);
-	void removeMapFromList(MapHandlerGen* map);
-	void addAttributeToList(unsigned int orbit, const QString& nameAttr);
+    void selectedMapChanged();
+    void addMapToList(MapHandlerGen* map);
+    void removeMapFromList(MapHandlerGen* map);
+    void addAttributeToList(unsigned int orbit, const QString& nameAttr);
 };
 
 } // namespace SCHNApps

@@ -22,7 +22,7 @@ bool Surface_SphericalInversion_Plugin::enable()
     connect(m_sphericalInversionDialog->button_cancel, SIGNAL(clicked()), this, SLOT(closeSphericalInversionDialog()));
     connect(m_sphericalInversionDialog->button_ok, SIGNAL(clicked()), this, SLOT(inverseFromDialog()));
 
-	return true;
+    return true;
 }
 
 void Surface_SphericalInversion_Plugin::disable()
@@ -46,9 +46,9 @@ void Surface_SphericalInversion_Plugin::closeSphericalInversionDialog()
 void Surface_SphericalInversion_Plugin::inverseFromDialog()
 {
     QList<QListWidgetItem*> currentItems = m_sphericalInversionDialog->list_maps->selectedItems();
-	if(!currentItems.empty())
-	{
-		const QString& mapName = currentItems[0]->text();
+    if(!currentItems.empty())
+    {
+        const QString& mapName = currentItems[0]->text();
         const QString& positionName = m_sphericalInversionDialog->combo_positionAttribute->currentText();
 
         MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(mapName));
@@ -62,20 +62,20 @@ void Surface_SphericalInversion_Plugin::inverseFromDialog()
 
             Camera* camera = m_schnapps->getSelectedView()->getCurrentCamera();
 
-//            GLdouble gl_mvm[16];
-//            camera->getModelViewMatrix(gl_mvm);
+            //            GLdouble gl_mvm[16];
+            //            camera->getModelViewMatrix(gl_mvm);
 
-//            PFP2::MATRIX44 camera_matrix, camera_matrix_inverse;
+            //            PFP2::MATRIX44 camera_matrix, camera_matrix_inverse;
 
-//            for(int i = 0; i < camera_matrix.m(); ++i)
-//            {
-//                for(int j = 0; j < camera_matrix.n(); ++j)
-//                {
-//                    camera_matrix(i, j) = gl_mvm[i*4+j];
-//                }
-//            }
+            //            for(int i = 0; i < camera_matrix.m(); ++i)
+            //            {
+            //                for(int j = 0; j < camera_matrix.n(); ++j)
+            //                {
+            //                    camera_matrix(i, j) = gl_mvm[i*4+j];
+            //                }
+            //            }
 
-//            camera_matrix.invert(camera_matrix_inverse);
+            //            camera_matrix.invert(camera_matrix_inverse);
 
             CGoGNout << camera->position().x << " " << camera->position().y << " " << camera->position().z << CGoGNendl;
 
@@ -117,7 +117,7 @@ void Surface_SphericalInversion_Plugin::inverseFromDialog()
                 m_schnapps->getSelectedView()->updateGL();
             }
         }
-	}
+    }
     m_sphericalInversionDialog->close();
 }
 
