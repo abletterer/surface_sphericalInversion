@@ -12,7 +12,7 @@ bool Surface_SphericalInversion_Plugin::enable()
 {
     m_sphericalInversionDialog = new Dialog_Surface_SphericalInversion(m_schnapps);
 
-    m_sphericalInversionAction = new QAction("Subdivide surface", this);
+    m_sphericalInversionAction = new QAction("Spherical Inversion", this);
 
     m_schnapps->addMenuAction(this, "Surface;Spherical Inversion", m_sphericalInversionAction);
 
@@ -62,48 +62,54 @@ void Surface_SphericalInversion_Plugin::inverseFromDialog()
 
             Camera* camera = m_schnapps->getSelectedView()->getCurrentCamera();
 
+//            GLdouble gl_mvm[16];
+//            camera->getModelViewMatrix(gl_mvm);
+
+//            PFP2::MATRIX44 camera_matrix, camera_matrix_inverse;
+
+//            for(int i = 0; i < camera_matrix.m(); ++i)
+//            {
+//                for(int j = 0; j < camera_matrix.n(); ++j)
+//                {
+//                    camera_matrix(i, j) = gl_mvm[i*4+j];
+//                }
+//            }
+
+//            camera_matrix.invert(camera_matrix_inverse);
+
+            CGoGNout << camera->position().x << " " << camera->position().y << " " << camera->position().z << CGoGNendl;
+
             if(camera)
             {
-                GLdouble gl_mvm[16];
-                camera->getModelViewMatrix(gl_mvm);
-
-                PFP2::MATRIX44 camera_matrix, camera_matrix_inverse;
-
-                for(int i = 0; i < camera_matrix.m(); ++i)
-                {
-                    for(int j = 0; j < camera_matrix.n(); ++j)
-                    {
-                        camera_matrix(i, j) = gl_mvm[i*4+j];
-                    }
-                }
-
-                camera_matrix.invert(camera_matrix_inverse);
-
                 //Get furthest point from the camera
                 float R = 0.f;
                 for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
                 {
-                    PFP2::VEC4 position = camera_matrix*PFP2::VEC4(positionMap[d][0], positionMap[d][1], positionMap[d][2], 1.f);
+                    qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
+                    camera_position = camera->cameraCoordinatesOf(world_position);
 
-                    positionMap[d] = PFP2::VEC3(position[0]/position[3], position[1]/position[3], position[2]/position[3]);
-                    float norm2_point = positionMap[d].norm2();
+                    PFP2::VEC3 position(camera_position[0], camera_position[1], camera_position[2]);
+                    float norm2_point = position.norm2();
+
                     if (norm2_point>R)
                     {
                         R = norm2_point;
                     }
                 }
 
+                R = sqrt(R);
+
                 for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
                 {
-                    PFP2::VEC4 position = camera_matrix*PFP2::VEC4(positionMap[d][0], positionMap[d][1], positionMap[d][2], 1.f);
-                    positionMap[d] = PFP2::VEC3(position[0]/position[3], position[1]/position[3], position[2]/position[3]);
+                    qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
+                    camera_position = camera->cameraCoordinatesOf(world_position);
 
-                    float norm_point = positionMap[d].norm();
+                    PFP2::VEC3 position(camera_position[0], camera_position[1], camera_position[2]);
+                    float norm_point = position.norm();
 
-                    positionMap[d] = positionMap[d]+2*(R-norm_point)*(positionMap[d]/norm_point);
-                    position = PFP2::VEC4(positionMap[d][0], positionMap[d][1], positionMap[d][2], 1.f);
-                    PFP2::VEC4 final_position = position*camera_matrix_inverse;
-                    positionMap[d] = PFP2::VEC3(final_position[0]/final_position[3], final_position[1]/final_position[3], final_position[2]/final_position[3]);
+                    camera_position = camera_position+2*(R-norm_point)*(camera_position/norm_point);
+                    world_position = camera->worldCoordinatesOf(camera_position);
+                    positionMap[d] = PFP2::VEC3(world_position[0], world_position[1], world_position[2]);
                 }
 
                 mh_map->updateBB(positionMap);
