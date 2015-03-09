@@ -15,31 +15,33 @@ namespace SCHNApps
 
 class Surface_SphericalInversion_Plugin : public Plugin
 {
-    Q_OBJECT
-    Q_INTERFACES(CGoGN::SCHNApps::Plugin)
+	Q_OBJECT
+	Q_INTERFACES(CGoGN::SCHNApps::Plugin)
 
 public:
-    Surface_SphericalInversion_Plugin()
-    {}
+	Surface_SphericalInversion_Plugin()
+	{}
 
-    ~Surface_SphericalInversion_Plugin()
-    {}
+	~Surface_SphericalInversion_Plugin()
+	{}
 
-    virtual bool enable();
-    virtual void disable();
+	virtual bool enable();
+	virtual void disable();
 
 private slots:
-    void openSphericalInversionDialog();
-    void closeSphericalInversionDialog();
+	void openSphericalInversionDialog();
+	void closeSphericalInversionDialog();
 
-    void inverseFromDialog();
+	void inverseFromDialog();
 
 public slots:
 
-private:
-    Dialog_Surface_SphericalInversion* m_sphericalInversionDialog;
+	void inverse(const QString& mapName, const QString& attributeName);
 
-    QAction* m_sphericalInversionAction;
+private:
+	Dialog_Surface_SphericalInversion* m_sphericalInversionDialog;
+
+	QAction* m_sphericalInversionAction;
 };
 
 } // namespace SCHNApps

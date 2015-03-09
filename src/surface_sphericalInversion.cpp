@@ -10,115 +10,111 @@ namespace SCHNApps
 
 bool Surface_SphericalInversion_Plugin::enable()
 {
-    m_sphericalInversionDialog = new Dialog_Surface_SphericalInversion(m_schnapps);
+	m_sphericalInversionDialog = new Dialog_Surface_SphericalInversion(m_schnapps);
 
-    m_sphericalInversionAction = new QAction("Spherical Inversion", this);
+	m_sphericalInversionAction = new QAction("Spherical Inversion", this);
 
-    m_schnapps->addMenuAction(this, "Surface;Spherical Inversion", m_sphericalInversionAction);
+	m_schnapps->addMenuAction(this, "Surface;Spherical Inversion", m_sphericalInversionAction);
 
-    connect(m_sphericalInversionAction, SIGNAL(triggered()), this, SLOT(openSphericalInversionDialog()));
+	connect(m_sphericalInversionAction, SIGNAL(triggered()), this, SLOT(openSphericalInversionDialog()));
 
-    connect(m_sphericalInversionDialog, SIGNAL(accepted()), this, SLOT(inverseFromDialog()));
-    connect(m_sphericalInversionDialog->button_cancel, SIGNAL(clicked()), this, SLOT(closeSphericalInversionDialog()));
-    connect(m_sphericalInversionDialog->button_ok, SIGNAL(clicked()), this, SLOT(inverseFromDialog()));
+	connect(m_sphericalInversionDialog, SIGNAL(accepted()), this, SLOT(inverseFromDialog()));
+	connect(m_sphericalInversionDialog->button_cancel, SIGNAL(clicked()), this, SLOT(closeSphericalInversionDialog()));
+	connect(m_sphericalInversionDialog->button_ok, SIGNAL(clicked()), this, SLOT(inverseFromDialog()));
 
-    return true;
+	return true;
 }
 
 void Surface_SphericalInversion_Plugin::disable()
 {
-    disconnect(m_sphericalInversionAction, SIGNAL(triggered()), this, SLOT(openSphericalInversionialog()));
+	disconnect(m_sphericalInversionAction, SIGNAL(triggered()), this, SLOT(openSphericalInversionialog()));
 
-    disconnect(m_sphericalInversionDialog, SIGNAL(accepted()), this, SLOT(inverseFromDialog()));
-    disconnect(m_sphericalInversionDialog->button_cancel, SIGNAL(clicked()), this, SLOT(closeSphericalInversionDialog()));
+	disconnect(m_sphericalInversionDialog, SIGNAL(accepted()), this, SLOT(inverseFromDialog()));
+	disconnect(m_sphericalInversionDialog->button_cancel, SIGNAL(clicked()), this, SLOT(closeSphericalInversionDialog()));
 }
 
 void Surface_SphericalInversion_Plugin::openSphericalInversionDialog()
 {
-    m_sphericalInversionDialog->show();
+	m_sphericalInversionDialog->show();
 }
 
 void Surface_SphericalInversion_Plugin::closeSphericalInversionDialog()
 {
-    m_sphericalInversionDialog->close();
+	m_sphericalInversionDialog->close();
 }
 
 void Surface_SphericalInversion_Plugin::inverseFromDialog()
 {
-    QList<QListWidgetItem*> currentItems = m_sphericalInversionDialog->list_maps->selectedItems();
-    if(!currentItems.empty())
-    {
-        const QString& mapName = currentItems[0]->text();
-        const QString& positionName = m_sphericalInversionDialog->combo_positionAttribute->currentText();
+	QList<QListWidgetItem*> currentItems = m_sphericalInversionDialog->list_maps->selectedItems();
+	if(!currentItems.empty())
+	{
+		const QString& mapName = currentItems[0]->text();
+		const QString& positionName = m_sphericalInversionDialog->combo_positionAttribute->currentText();
 
-        MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(mapName));
+		inverse(mapName, positionName);
+	}
+	m_sphericalInversionDialog->close();
+}
 
-        if(mh_map)
-        {
-            PFP2::MAP* map = mh_map->getMap();
-            VertexAttribute<PFP2::VEC3, PFP2::MAP> positionMap = mh_map->getAttribute<PFP2::VEC3, VERTEX>(positionName);
+void Surface_SphericalInversion_Plugin::inverse(const QString& mapName, const QString& attributeName)
+{
+	MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(mapName));
 
-            TraversorV<PFP2::MAP> trav_vert_map(*map);
+	if(mh_map)
+	{
+		PFP2::MAP* map = mh_map->getMap();
+		VertexAttribute<PFP2::VEC3, PFP2::MAP> positionMap = mh_map->getAttribute<PFP2::VEC3, VERTEX>(attributeName);
+		if(!positionMap.isValid())
+		{
+			CGoGNerr << attributeName.toStdString() << " attribute is not valid" << CGoGNendl;
+			return;
+		}
 
-            Camera* camera = m_schnapps->getSelectedView()->getCurrentCamera();
+		Camera* camera = m_schnapps->getSelectedView()->getCurrentCamera();
 
-            //            GLdouble gl_mvm[16];
-            //            camera->getModelViewMatrix(gl_mvm);
+		if(camera)
+		{
 
-            //            PFP2::MATRIX44 camera_matrix, camera_matrix_inverse;
+			CGoGNout << camera->position().x << " " << camera->position().y << " " << camera->position().z << CGoGNendl;
 
-            //            for(int i = 0; i < camera_matrix.m(); ++i)
-            //            {
-            //                for(int j = 0; j < camera_matrix.n(); ++j)
-            //                {
-            //                    camera_matrix(i, j) = gl_mvm[i*4+j];
-            //                }
-            //            }
+			float R = 0.f;
 
-            //            camera_matrix.invert(camera_matrix_inverse);
+			//Get furthest point from the camera, it is the radius of the sphere
+			TraversorV<PFP2::MAP> trav_vert_map(*map);
+			for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
+			{
+				qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
+				camera_position = camera->cameraCoordinatesOf(world_position);
 
-            CGoGNout << camera->position().x << " " << camera->position().y << " " << camera->position().z << CGoGNendl;
+				float norm2_point = camera_position.x*camera_position.x+camera_position.y*camera_position.y+camera_position.z*camera_position.z;
 
-            if(camera)
-            {
-                //Get furthest point from the camera
-                float R = 0.f;
-                for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
-                {
-                    qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
-                    camera_position = camera->cameraCoordinatesOf(world_position);
+				if (norm2_point>R)
+				{
+					R = norm2_point;
+				}
+			}
 
-                    PFP2::VEC3 position(camera_position[0], camera_position[1], camera_position[2]);
-                    float norm2_point = position.norm2();
+			R = sqrt(R);
 
-                    if (norm2_point>R)
-                    {
-                        R = norm2_point;
-                    }
-                }
+			for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
+			{
+				qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
+				camera_position = camera->cameraCoordinatesOf(world_position);
 
-                R = sqrt(R);
+				PFP2::VEC3 position(camera_position[0], camera_position[1], camera_position[2]);
+				float norm_point = position.norm();
 
-                for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
-                {
-                    qglviewer::Vec world_position(positionMap[d][0], positionMap[d][1], positionMap[d][2]), camera_position;
-                    camera_position = camera->cameraCoordinatesOf(world_position);
+				camera_position = camera_position+2*(R-norm_point)*(camera_position/norm_point);
+				world_position = camera->worldCoordinatesOf(camera_position);
+				positionMap[d] = PFP2::VEC3(world_position[0], world_position[1], world_position[2]);
+			}
 
-                    PFP2::VEC3 position(camera_position[0], camera_position[1], camera_position[2]);
-                    float norm_point = position.norm();
-
-                    camera_position = camera_position+2*(R-norm_point)*(camera_position/norm_point);
-                    world_position = camera->worldCoordinatesOf(camera_position);
-                    positionMap[d] = PFP2::VEC3(world_position[0], world_position[1], world_position[2]);
-                }
-
-                mh_map->updateBB(positionMap);
-                mh_map->updateVBO(positionMap);
-                m_schnapps->getSelectedView()->updateGL();
-            }
-        }
-    }
-    m_sphericalInversionDialog->close();
+			mh_map->updateBB(positionMap);
+			mh_map->notifyAttributeModification(positionMap);
+			mh_map->updateVBO(positionMap);
+			m_schnapps->getSelectedView()->updateGL();
+		}
+	}
 }
 
 #ifndef DEBUG
