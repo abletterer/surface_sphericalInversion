@@ -6,6 +6,7 @@
 #include "camera.h"
 
 #include "dialog_surface_sphericalInversion.h"
+#include "Utils/chrono.h"
 
 namespace CGoGN
 {

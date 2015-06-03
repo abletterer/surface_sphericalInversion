@@ -71,11 +71,13 @@ void Surface_SphericalInversion_Plugin::inverse(const QString& mapName, const QS
 		}
 
 		Camera* camera = m_schnapps->getSelectedView()->getCurrentCamera();
-
 		if(camera)
 		{
-
 			CGoGNout << camera->position().x << " " << camera->position().y << " " << camera->position().z << CGoGNendl;
+
+			CGoGNout << "Spherical inversion on " << map->getNbCells(VERTEX) << " points .." << CGoGNflush;
+			Utils::Chrono chrono;
+			chrono.start();
 
 			float R = 0.f;
 
@@ -108,6 +110,8 @@ void Surface_SphericalInversion_Plugin::inverse(const QString& mapName, const QS
 				world_position = camera->worldCoordinatesOf(camera_position);
 				positionMap[d] = PFP2::VEC3(world_position[0], world_position[1], world_position[2]);
 			}
+
+			CGoGNout << ".. performed in " << chrono.elapsed() << " ms" << CGoGNendl;
 
 			mh_map->updateBB(positionMap);
 			mh_map->notifyAttributeModification(positionMap);
