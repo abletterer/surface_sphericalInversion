@@ -121,6 +121,27 @@ void Surface_SphericalInversion_Plugin::inverse(const QString& mapName, const QS
 	}
 }
 
+void Surface_SphericalInversion_Plugin::computeConvexHull(const QString& mapName, const QString& attributeName)
+{
+	MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(mapName));
+
+	if(mh_map)
+	{
+		PFP2::MAP* map = mh_map->getMap();
+	}
+}
+
+void Surface_SphericalInversion_Plugin::initializeConvexHull(PFP2::MAP& map, VertexAttribute<PFP2::VEC3, PFP2::MAP>& attribute)
+{
+	TraversorV<PFP2::MAP> trav_vert_map(map);
+
+
+	for(Dart d = trav_vert_map.begin(); d != trav_vert_map.end(); d = trav_vert_map.next())
+	{
+
+	}
+}
+
 #ifndef DEBUG
 Q_EXPORT_PLUGIN2(Surface_SphericalInversion_Plugin, Surface_SphericalInversion_Plugin)
 #else

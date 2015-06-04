@@ -35,9 +35,13 @@ private slots:
 
 	void inverseFromDialog();
 
+	void initializeConvexHull(PFP2::MAP& map, VertexAttribute<PFP2::VEC3, PFP2::MAP>& attribute);
+
 public slots:
 
 	void inverse(const QString& mapName, const QString& attributeName);
+
+	void computeConvexHull(const QString& mapName, const QString& attributeName);
 
 private:
 	Dialog_Surface_SphericalInversion* m_sphericalInversionDialog;
